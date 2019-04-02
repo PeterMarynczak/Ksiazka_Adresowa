@@ -31,52 +31,84 @@ void editRecipient (vector<Recipient> &recipients);
 
 int main() {
 
-    vector<Recipient> recipients;
-    int recipientsAmount = loadAllFriendsFromFile(recipients);
+        vector<User> usersContainer;
+        vector<Recipient> recipients;
+        vector<Recipient> recipientsTemporary;
+        recipients = recipientsTemporary;
 
-    char choiceNr;
+        int idZalogowanegoUzytkownika = 0;
+        //int usersAmount = loadUsersFromFile (usersContainer);
+        int recipientsAmount = loadAllFriendsFromFile(recipientsTemporary);
 
-    while (true) {
+        char wybor;
+        char choiceNr;
 
-        system("cls");
-        cout << "KSIAZKA ADRESOWA" << endl;
-        cout << "1. Dodaj adresata" << endl;
-        cout << "2. Wyszukaj po imieniu" << endl;
-        cout << "3. Wyszukaj po nazwisku" << endl;
-        cout << "4. Wyswietl wszystkich adresatow" << endl;
-        cout << "5. Usun adresata" << endl;
-        cout << "6. Edytuj adresata" << endl;
-        cout << "9. Zakoncz program" << endl;
-        cout << "Twoj wybor: ";
+        while(1) {
+            if (idZalogowanegoUzytkownika == 0) {
+                system ("cls");
+                cout << "1. Logowanie" << endl;
+                cout << "2. Rejestracja" << endl;
+                cout << "9. Zakoncz program" << endl;
+                cin >> wybor;
 
-        choiceNr = getch();
+                if (wybor == '1') {
+                    //idZalogowanegoUzytkownika = logowanie (usersContainer, usersAmount);
+                    //updateVectorOfRecipients (recipients, idZalogowanegoUzytkownika);
+                }
 
-        if (choiceNr == '1') {
-            recipientsAmount = addNewFriend(recipients, recipientsAmount);
-        }
-        if (choiceNr == '2') {
-            loadAllFriendsFromFile(recipients);
-            searchRecipientByName (recipients, recipientsAmount);
-        }
-        if (choiceNr == '3') {
-            loadAllFriendsFromFile(recipients);
-            searchRecipientBySurname (recipients, recipientsAmount);
-        }
-        if (choiceNr == '4') {
-            viewRecipientsFromFile (recipients, recipientsAmount);
-        }
-        if (choiceNr == '5') {
-            deleteRecipient (recipients, recipientsAmount);
-        }
-        if (choiceNr == '6') {
-            editRecipient (recipients);
+                if (wybor == '2') {
+                    //rejestracja (usersContainer, usersAmount);
+                }
 
-        } else if (choiceNr == '9') {
-            exit(0);
+                if (wybor == '9') {
+                    exit(0);
+                }
+            }
+
+            else {
+                system ("cls");
+                cout << "KSIAZKA ADRESOWA" << endl;
+                cout << "1. Dodaj adresata" << endl;
+                cout << "2. Wyszukaj po imieniu" << endl;
+                cout << "3. Wyszukaj po nazwisku" << endl;
+                cout << "4. Wyswietl wszystkich adresatow" << endl;
+                cout << "5. Usun adresata" << endl;
+                cout << "6. Edytuj adresata" << endl;
+                cout << "7. Zmiana hasla" << endl;
+                cout << "8. Wylogowanie" << endl;
+                cout << "Twoj wybor: ";
+
+                choiceNr = getch();
+
+                if (choiceNr == '1') {
+                    //addNewFriend(recipients, recipientsTemporary, idZalogowanegoUzytkownika);
+                }
+                if (choiceNr == '2') {
+                    //searchRecipientByName (recipients);
+                }
+                if (choiceNr == '3') {
+                    //searchRecipientBySurname (recipients);
+                }
+                if (choiceNr == '4') {
+                    //viewRecipientsFromFile (recipients, recipientsAmount);
+                }
+                if (choiceNr == '5') {
+                    //deleteRecipient (recipients, recipientsTemporary, idZalogowanegoUzytkownika, recipientsAmount);
+                }
+                if (choiceNr == '6') {
+                    //editRecipient (recipients, idZalogowanegoUzytkownika);
+                }
+                if (choiceNr == '7') {
+                    //zmianaHasla(usersContainer, usersAmount, idZalogowanegoUzytkownika);
+                    //loadUsersToAFile(usersContainer);
+                } else if (choiceNr == '8') {
+                    //recipientsAmount = loadAllFriendsFromFile(recipients);
+                    //idZalogowanegoUzytkownika = 0;
+                }
+            }
         }
+        return 0;
     }
-    return 0;
-}
 
 int addNewFriend(vector<Recipient> &recipients, int recipientsAmount) {
 
