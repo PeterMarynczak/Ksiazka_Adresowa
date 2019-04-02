@@ -8,6 +8,11 @@
 
 using namespace std;
 
+struct User {
+    int idUzytkownika;
+    string nazwa, haslo;
+};
+
 struct Recipient {
     int id = 0;
     string name = "", surname = "", phoneNr = "", email = "", address = "";
