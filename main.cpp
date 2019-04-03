@@ -36,6 +36,76 @@ int logowanie (vector<User> &usersContainer, int usersAmount);
 void rejestracja (vector<User> &usersContainer, int &usersAmount);
 void updateVectorOfRecipients (vector<Recipient> &recipients, int idZalogowanegoUzytkownika);
 
+deleteRecipient (vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int idZalogowanegoUzytkownika) {
+
+    int idNr;
+    char choiceNr;
+    cout << endl;
+    cout << "Podaj id osoby do usuniecia z Ksiazki adresowej: ";
+    cin >> idNr;
+    stringstream ss;
+    ss << idNr;
+    string idInString = ss.str();
+
+    cout << "Czy na pewno chcesz aby Adresat o id: " << idInString << " zostal usuniety" << endl;
+    cout << "wybierz (t) jezeli tak" << endl;
+    choiceNr = getch();
+
+    if (choiceNr == 't') {
+
+        fstream plik;
+        fstream temp;
+        Recipient recipientData;
+
+        plik.open("Adresaci.txt",ios::in);
+        temp.open("Adresaci_tymczasowy.txt",ios::out);
+
+        int laneNumber = 1;
+        string linia;
+        char delimiter = '|';
+        vector<string> newSplit;
+        int temporary = 0;
+
+        if (plik.good() == true) {
+            while(getline(plik,linia)) {
+
+                switch(laneNumber) {
+
+                case 1:
+                    int i = 0;
+                    vector<string> newSplit = split(linia, delimiter);
+
+                    if(newSplit[i] != idInString) {
+                        temp << linia << endl;
+                        newSplit.clear();
+                    }
+                    if (laneNumber == 1) {
+                        laneNumber = 0;
+                    }
+                    laneNumber++;
+                }
+            }
+        }
+        plik.close();
+        temp.close();
+        remove("Adresaci.txt");
+        rename("Adresaci_tymczasowy.txt", "Adresaci.txt");
+
+
+        for (int i = 0; i < recipients.size(); i++) {
+            if(recipients[i].id == idNr) {
+                recipients.erase(recipients.begin() + i);
+                cout<<"Adresat o id: " << idInString << " zostal usuniety" << endl;
+                Sleep(2000);
+            }
+            for (int i = 0; i < recipientsTemporary.size(); i++) {
+                if(recipientsTemporary[i].id == idNr) {
+                    recipientsTemporary.erase(recipientsTemporary.begin() + i);
+                }
+            }
+        }
+    }
+}
 
 int main() {
 
@@ -101,7 +171,7 @@ int main() {
                     viewRecipientsFromFile (recipients, recipientsAmount);
                 }
                 if (choiceNr == '5') {
-                    //deleteRecipient (recipients, recipientsTemporary, idZalogowanegoUzytkownika, recipientsAmount);
+                    deleteRecipient (recipients, recipientsTemporary, idZalogowanegoUzytkownika);
                 }
                 if (choiceNr == '6') {
                     editRecipient (recipients, idZalogowanegoUzytkownika);
