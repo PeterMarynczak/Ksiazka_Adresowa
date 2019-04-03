@@ -24,7 +24,7 @@ vector<string> split(string& linia, char delimiter);
 int loadAllFriendsFromFile(vector<Recipient> &recipientsTemporary);
 void viewRecipientsFromFile (vector<Recipient> &recipients, int recipientsAmount);
 void searchRecipientByName (vector<Recipient> &recipients);
-void searchRecipientBySurname (vector<Recipient> &recipients, int recipientsAmount);
+void searchRecipientBySurname (vector<Recipient> &recipients);
 void deleteRecipient (vector<Recipient> &recipients, int &recipientsAmount);
 void loadRecipientsToAFile(fstream &plik, vector<Recipient> &recipients);
 void editRecipient (vector<Recipient> &recipients);
@@ -95,7 +95,7 @@ int main() {
                     searchRecipientByName(recipients);
                 }
                 if (choiceNr == '3') {
-                    //searchRecipientBySurname (recipients);
+                    searchRecipientBySurname (recipients);
                 }
                 if (choiceNr == '4') {
                     //viewRecipientsFromFile (recipients, recipientsAmount);
@@ -233,26 +233,35 @@ void searchRecipientByName (vector<Recipient> &recipients) {
     system("pause");
 }
 
-void searchRecipientBySurname (vector<Recipient> &recipients, int recipientsAmount) {
+void searchRecipientBySurname (vector<Recipient> &recipients) {
 
-    string nazwiskoDoWyszukania;
+    string nazwiskoDoWyszukania = "";
+    int iloscAdresatow = 0;
+
     system("cls");
 
-    cout << "Podaj imie do wyszukania: ";
-    cin >> nazwiskoDoWyszukania;
-    cout << "Oto lista twoich znajomych o nazwisku: " << nazwiskoDoWyszukania << endl;
+    cout << ">>> WYSZUKIWANIE ADRESATOW O NAZWISKU <<<" << endl << endl;
 
-    int i = 0;
-    while (i < recipientsAmount) {
-        if (recipients[i].surname == nazwiskoDoWyszukania) {
-            cout << "id: " << recipients[i].id << endl;
-            cout << recipients[i].name << " " << recipients[i].surname << endl;
-            cout << "zamieszkaly w " << recipients[i].address << endl;
-            cout << "numer tel. " << recipients[i].phoneNr << endl;
-            cout << "adres email: " << recipients[i].email << endl;
+    cout << "Wyszukaj adresatow o nazwisku: ";
+    cin >> nazwiskoDoWyszukania;
+
+    for (vector<Recipient>::iterator  itr = recipients.begin(); itr != recipients.end(); itr++) {
+        if (itr->surname == nazwiskoDoWyszukania) {
             cout << endl;
+            cout << "Id:                 " << itr->id << endl;
+            cout << "Imie:               " << itr->name << endl;
+            cout << "Nazwisko:           " << itr->surname << endl;
+            cout << "Numer Telefonu:     " << itr->phoneNr << endl;
+            cout << "Nr Email:           " << itr->email << endl;
+            cout << "Adres:              " << itr->address << endl;
+            iloscAdresatow++;
         }
-        i++;
+    }
+    if (iloscAdresatow == 0) {
+        cout << endl << "Nie ma adresatow o tym nazwisku w ksiazce adresowej" << endl;
+    } else {
+        cout << endl << "Ilosc adresatow o nazwisku: >>> " << nazwiskoDoWyszukania << " <<<";
+        cout << " w ksiazce adresowej wynosi: " << iloscAdresatow << endl << endl;
     }
     system("pause");
 }
