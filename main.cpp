@@ -15,12 +15,13 @@ struct User {
 
 struct Recipient {
     int id = 0;
+    int idUser = 0;
     string name = "", surname = "", phoneNr = "", email = "", address = "";
 };
 
 int addNewFriend(vector<Recipient> &recipients, int recipientsAmount);
 vector<string> split(string& linia, char delimiter);
-int loadAllFriendsFromFile(vector<Recipient> &recipients);
+int loadAllFriendsFromFile(vector<Recipient> &recipientsTemporary);
 void viewRecipientsFromFile (vector<Recipient> &recipients, int recipientsAmount);
 void searchRecipientByName (vector<Recipient> &recipients, int recipientsAmount);
 void searchRecipientBySurname (vector<Recipient> &recipients, int recipientsAmount);
@@ -69,6 +70,33 @@ int loadUsersFromFile (vector<User> &usersContainer) {
         plik.open("Uzytkownicy.txt",ios::out | ios::app);
     }
     return usersAmount;
+}
+
+int logowanie (vector<User> &usersContainer, int usersAmount) {
+    string nazwa, haslo;
+    cout << "Podaj nazwe: ";
+    cin >> nazwa;
+
+    int i = 0;
+    while (i < usersAmount) {
+        if ( usersContainer[i].nazwa == nazwa ) {
+            for (int proby = 0; proby < 3 ; proby++) {
+                cout << "Podaj haslo. Pozostalo prob "<< 3-proby <<": ";
+                cin >> haslo;
+                if (usersContainer[i].haslo == haslo) {
+                    cout << "Zalogowales sie." << endl;
+                    Sleep (1000);
+                    return usersContainer[i].idUzytkownika;
+                }
+            }
+            Sleep (3000);
+            return 0;
+        }
+        i++;
+    }
+    cout << "Nie ma uzytkownika z takim loginem" <<endl;
+    Sleep(1500);
+    return 0;
 }
 
 void rejestracja (vector<User> &usersContainer, int &usersAmount) {
@@ -137,7 +165,7 @@ int main() {
                 cin >> wybor;
 
                 if (wybor == '1') {
-                    //idZalogowanegoUzytkownika = logowanie (usersContainer, usersAmount);
+                    idZalogowanegoUzytkownika = logowanie (usersContainer, usersAmount);
                     //updateVectorOfRecipients (recipients, idZalogowanegoUzytkownika);
                 }
 
@@ -239,7 +267,7 @@ int addNewFriend(vector<Recipient> &recipients, int recipientsAmount) {
     Sleep(2000);
 
     fstream plik;
-    plik.open("KsiazkaAdresowa.txt", ios::out | ios::app);
+    plik.open("Adresaci.txt", ios::out | ios::app);
 
     if (plik.good() == true) {
         plik << id << "|";
@@ -266,7 +294,7 @@ vector<string> split(string& linia, char delimiter) {
     return tokens;
 }
 
-int loadAllFriendsFromFile(vector<Recipient> &recipients) {
+int loadAllFriendsFromFile(vector<Recipient> &recipientsTemporary) {
 
     Recipient recipientData;
     int recipientsAmount = 0;
@@ -276,7 +304,7 @@ int loadAllFriendsFromFile(vector<Recipient> &recipients) {
     vector<string> newSplit;
 
     fstream plik;
-    plik.open("KsiazkaAdresowa.txt",ios::out | ios::app);
+    plik.open("Adresaci.txt",ios::in);
 
     if (plik.good() == true) {
         while(getline(plik,linia)) {
@@ -287,16 +315,16 @@ int loadAllFriendsFromFile(vector<Recipient> &recipients) {
                 int i = 0;
                 vector<string> newSplit = split(linia, delimiter);
                 recipientData.id = atoi(newSplit[i].c_str());
-                recipientData.name = newSplit[i+1];
-                recipientData.surname = newSplit[i+2];
-                recipientData.phoneNr = newSplit[i+3];
-                recipientData.email = newSplit[i+4];
-                recipientData.address = newSplit[i+5];
-                recipients.push_back(recipientData);
+                recipientData.idUser = atoi(newSplit[i+1].c_str());
+                recipientData.name = newSplit[i+2];
+                recipientData.surname = newSplit[i+3];
+                recipientData.phoneNr = newSplit[i+4];
+                recipientData.email = newSplit[i+5];
+                recipientData.address = newSplit[i+6];
+                recipientsTemporary.push_back(recipientData);
                 newSplit.clear();
 
                 if (laneNumber == 1) {
-                    recipientsAmount++;
                     laneNumber = 0;
                 }
                 laneNumber++;
@@ -304,9 +332,15 @@ int loadAllFriendsFromFile(vector<Recipient> &recipients) {
         }
         plik.close();
     }
-
     else if ( plik.good() == false) {
         cout << "Nie udalo sie otworzyc pliku!";
+        plik.open("Adresaci.txt",ios::out | ios::app);
+    }
+
+    if (recipientsTemporary.empty() == true) {
+        recipientsAmount = 0;
+    } else {
+        recipientsAmount = recipientsTemporary.back().id;
     }
     return recipientsAmount;
 }
@@ -404,7 +438,7 @@ void deleteRecipient (vector<Recipient> &recipients, int &recipientsAmount) {
             }
         }
         fstream plik;
-        plik.open("KsiazkaAdresowa.txt",ios::out);
+        plik.open("Adresaci.txt",ios::out);
 
         if (plik.good() == true) {
             for (int i = 0; i < recipients.size(); i++) {
@@ -430,7 +464,7 @@ void deleteRecipient (vector<Recipient> &recipients, int &recipientsAmount) {
 void loadRecipientsToAFile(vector<Recipient> &recipients) {
 
     fstream plik;
-    plik.open("KsiazkaAdresowa.txt",ios::out);
+    plik.open("Adresaci.txt",ios::out);
 
     if (plik.good() == true) {
         for (int i = 0; i < recipients.size(); i++) {
