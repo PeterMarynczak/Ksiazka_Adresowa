@@ -28,6 +28,91 @@ void deleteRecipient (vector<Recipient> &recipients, int &recipientsAmount);
 void loadRecipientsToAFile(fstream &plik, vector<Recipient> &recipients);
 void editRecipient (vector<Recipient> &recipients);
 
+int loadUsersFromFile (vector<User> &usersContainer) {
+
+    User userData;
+    int usersAmount = 0;
+    int laneNumber = 1;
+    string linia;
+    char delimiter = '|';
+    vector<string> newSplit;
+
+    fstream plik;
+    plik.open("Uzytkownicy.txt", ios::in);
+
+    if (plik.good() == true) {
+        while(getline(plik,linia)) {
+
+            switch(laneNumber) {
+
+            case 1:
+                int i = 0;
+                vector<string> newSplit = split(linia, delimiter);
+                userData.idUzytkownika = atoi(newSplit[i].c_str());
+                userData.nazwa = newSplit[i+1];
+                userData.haslo = newSplit[i+2];
+                usersContainer.push_back(userData);
+                newSplit.clear();
+
+                if (laneNumber == 1) {
+                    usersAmount++;
+                    laneNumber = 0;
+                }
+                laneNumber++;
+            }
+        }
+        plik.close();
+    }
+
+    else if ( plik.good() == false) {
+        cout << "Nie udalo sie otworzyc pliku!";
+        plik.open("Uzytkownicy.txt",ios::out | ios::app);
+    }
+    return usersAmount;
+}
+
+void rejestracja (vector<User> &usersContainer, int &usersAmount) {
+
+    string nazwa, haslo;
+    User userData;
+
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> nazwa;
+
+    int i = 0;
+    while (i < usersAmount) {
+        if ( usersContainer[i].nazwa == nazwa ) {
+            cout << "Taki uzytkownik istnieje, wpisz inna nazwe uzytkownika: ";
+            cin >> nazwa;
+            i = 0;
+        } else {
+            i++;
+        }
+    }
+    cout << "Podaj haslo: ";
+    cin >> haslo;
+
+    userData.idUzytkownika = usersAmount + 1;
+    userData.nazwa = nazwa;
+    userData.haslo = haslo;
+    usersContainer.push_back(userData);
+
+    cout << "Konto zalozone" << endl;
+    usersAmount++;
+    Sleep(1000);
+
+    fstream plik;
+    plik.open("Uzytkownicy.txt", ios::out | ios::app);
+
+    if (plik.good() == true) {
+        plik << userData.idUzytkownika << "|";
+        plik << nazwa << "|";
+        plik << haslo << "|" << endl;
+    } else {
+        cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych." << endl;
+        system("pause");
+    }
+}
 
 int main() {
 
@@ -37,7 +122,7 @@ int main() {
         recipients = recipientsTemporary;
 
         int idZalogowanegoUzytkownika = 0;
-        //int usersAmount = loadUsersFromFile (usersContainer);
+        int usersAmount = loadUsersFromFile (usersContainer);
         int recipientsAmount = loadAllFriendsFromFile(recipientsTemporary);
 
         char wybor;
@@ -57,7 +142,7 @@ int main() {
                 }
 
                 if (wybor == '2') {
-                    //rejestracja (usersContainer, usersAmount);
+                    rejestracja (usersContainer, usersAmount);
                 }
 
                 if (wybor == '9') {
@@ -121,8 +206,8 @@ int addNewFriend(vector<Recipient> &recipients, int recipientsAmount) {
     cout << "Podaj nazwisko uzytkownika: ";
     cin >> surname;
     cout << "Podaj numer telefonu uzytkownika: ";
-    cin.sync(); // oprozniam bufor
-    getline(cin, phoneNr); // wczytuje razem ze spacja
+    cin.sync();
+    getline(cin, phoneNr);
     cout << "Podaj email uzytkownika: ";
     cin >> email;
     cout << "Podaj adres uzytkownika: ";
@@ -188,10 +273,10 @@ int loadAllFriendsFromFile(vector<Recipient> &recipients) {
     int laneNumber = 1;
     string linia;
     char delimiter = '|';
-    vector<string> newSplit; // = split(linia, delimiter);
+    vector<string> newSplit;
 
     fstream plik;
-    plik.open("KsiazkaAdresowa.txt",ios::in);
+    plik.open("KsiazkaAdresowa.txt",ios::out | ios::app);
 
     if (plik.good() == true) {
         while(getline(plik,linia)) {
@@ -222,7 +307,6 @@ int loadAllFriendsFromFile(vector<Recipient> &recipients) {
 
     else if ( plik.good() == false) {
         cout << "Nie udalo sie otworzyc pliku!";
-        plik.open("KsiazkaAdresowa.txt",ios::out | ios::app);
     }
     return recipientsAmount;
 }
