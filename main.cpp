@@ -26,8 +26,8 @@ void viewRecipientsFromFile (vector<Recipient> &recipients, int recipientsAmount
 void searchRecipientByName (vector<Recipient> &recipients);
 void searchRecipientBySurname (vector<Recipient> &recipients);
 void deleteRecipient (vector<Recipient> &recipients, int &recipientsAmount);
-void loadRecipientsToAFile(fstream &plik, vector<Recipient> &recipients);
-void editRecipient (vector<Recipient> &recipients);
+void loadRecipientsToAFile(vector<Recipient> &recipients, int idZalogowanegoUzytkownika);
+void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika);
 void zmianaHasla(vector<User> &usersContainer, int usersAmount, int idZalogowanegoUzytkownika);
 void loadUsersToAFile(vector<User> &usersContainer);
 void addNewFriend(vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int idZalogowanegoUzytkownika);
@@ -104,7 +104,7 @@ int main() {
                     //deleteRecipient (recipients, recipientsTemporary, idZalogowanegoUzytkownika, recipientsAmount);
                 }
                 if (choiceNr == '6') {
-                    //editRecipient (recipients, idZalogowanegoUzytkownika);
+                    editRecipient (recipients, idZalogowanegoUzytkownika);
                 }
                 if (choiceNr == '7') {
                     zmianaHasla(usersContainer, usersAmount, idZalogowanegoUzytkownika);
@@ -313,25 +313,57 @@ void deleteRecipient (vector<Recipient> &recipients, int &recipientsAmount) {
     }
 }
 
-void loadRecipientsToAFile(vector<Recipient> &recipients) {
+void loadRecipientsToAFile(vector<Recipient> &recipients, int idZalogowanegoUzytkownika) {
 
     fstream plik;
-    plik.open("Adresaci.txt",ios::out);
+    fstream temp;
+    Recipient recipientData;
+
+    plik.open("Adresaci.txt",ios::in);
+    temp.open("Adresaci_tymczasowy.txt",ios::out);
+
+    int laneNumber = 1;
+    string linia;
+    char delimiter = '|';
+    vector<string> newSplit;
+    int temporary = 0;
 
     if (plik.good() == true) {
-        for (int i = 0; i < recipients.size(); i++) {
-            plik << recipients[i].id << "|";
-            plik << recipients[i].name << "|";
-            plik << recipients[i].surname << "|";
-            plik << recipients[i].phoneNr << "|";
-            plik << recipients[i].email << "|";
-            plik << recipients[i].address << "|" << endl;
+        while(getline(plik,linia)) {
+
+            switch(laneNumber) {
+
+            case 1:
+                int i = 0;
+                vector<string> newSplit = split(linia, delimiter);
+
+                if(atoi(newSplit[i+1].c_str()) != idZalogowanegoUzytkownika) {
+                    temp << linia << endl;
+                    newSplit.clear();
+                } else {
+                    temp << recipients[temporary].id << "|";
+                    temp << recipients[temporary].idUser << "|";
+                    temp << recipients[temporary].name << "|";
+                    temp << recipients[temporary].surname << "|";
+                    temp << recipients[temporary].phoneNr << "|";
+                    temp << recipients[temporary].email << "|";
+                    temp << recipients[temporary].address << "|" << endl;
+                    temporary++;
+                }
+                if (laneNumber == 1) {
+                    laneNumber = 0;
+                }
+                laneNumber++;
+            }
         }
-        plik.close();
     }
+    plik.close();
+    temp.close();
+    remove("Adresaci.txt");
+    rename("Adresaci_tymczasowy.txt", "Adresaci.txt");
 }
 
-void editRecipient (vector<Recipient> &recipients) {
+void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika) {
 
     int idOfRecipientToEdit;
     char choiceNr;
@@ -360,7 +392,9 @@ void editRecipient (vector<Recipient> &recipients) {
                 recipients[i].name = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients);
+        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        cout << endl << "imie zostalo pomyslnie zmienione" << endl;
+        Sleep(2000);
         break;
     }
     case '2': {
@@ -371,7 +405,9 @@ void editRecipient (vector<Recipient> &recipients) {
                 recipients[i].surname = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients);
+        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        cout << endl << "nazwisko zostalo pomyslnie zmienione" << endl;
+        Sleep(2000);
         break;
     }
     case '3': {
@@ -383,7 +419,9 @@ void editRecipient (vector<Recipient> &recipients) {
                 recipients[i].phoneNr = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients);
+        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        cout << endl << "Nr telefonu zostal pomyslnie zmieniony" << endl;
+        Sleep(2000);
         break;
     }
     case '4': {
@@ -395,7 +433,9 @@ void editRecipient (vector<Recipient> &recipients) {
                 recipients[i].email = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients);
+        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        cout << endl << "adres email zostal pomyslnie zmieniony" << endl;
+        Sleep(2000);
         break;
     }
     case '5': {
@@ -407,7 +447,9 @@ void editRecipient (vector<Recipient> &recipients) {
                 recipients[i].address = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients);
+        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        cout << endl << "adres zostal pomyslnie zmieniony" << endl;
+        Sleep(2000);
         break;
     }
     case '6':
