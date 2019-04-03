@@ -19,6 +19,34 @@ struct Recipient {
     string name = "", surname = "", phoneNr = "", email = "", address = "";
 };
 
+void zmianaHasla(vector<User> &usersContainer, int usersAmount, int idZalogowanegoUzytkownika) {
+    string newPassword;
+    cout << "Podaj nowe haslo: ";
+    cin >> newPassword;
+    for (int i=0; i < usersAmount; i++) {
+        if (usersContainer[i].idUzytkownika == idZalogowanegoUzytkownika) {
+            usersContainer[i].haslo = newPassword;
+            cout << "Haslo zostalo zmienione" << endl;
+            Sleep (1500);
+        }
+    }
+}
+
+void loadUsersToAFile(vector<User> &usersContainer) {
+
+    fstream plik;
+    plik.open("Uzytkownicy.txt",ios::out);
+
+    if (plik.good() == true) {
+        for (int i = 0; i < usersContainer.size(); i++) {
+            plik << usersContainer[i].idUzytkownika << "|";
+            plik << usersContainer[i].nazwa << "|";
+            plik << usersContainer[i].haslo << "|" << endl;
+        }
+        plik.close();
+    }
+}
+
 int addNewFriend(vector<Recipient> &recipients, int recipientsAmount);
 vector<string> split(string& linia, char delimiter);
 int loadAllFriendsFromFile(vector<Recipient> &recipientsTemporary);
@@ -212,11 +240,11 @@ int main() {
                     //editRecipient (recipients, idZalogowanegoUzytkownika);
                 }
                 if (choiceNr == '7') {
-                    //zmianaHasla(usersContainer, usersAmount, idZalogowanegoUzytkownika);
-                    //loadUsersToAFile(usersContainer);
+                    zmianaHasla(usersContainer, usersAmount, idZalogowanegoUzytkownika);
+                    loadUsersToAFile(usersContainer);
                 } else if (choiceNr == '8') {
                     //recipientsAmount = loadAllFriendsFromFile(recipients);
-                    //idZalogowanegoUzytkownika = 0;
+                    idZalogowanegoUzytkownika = 0;
                 }
             }
         }
