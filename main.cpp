@@ -98,7 +98,7 @@ int main() {
                     searchRecipientBySurname (recipients);
                 }
                 if (choiceNr == '4') {
-                    //viewRecipientsFromFile (recipients, recipientsAmount);
+                    viewRecipientsFromFile (recipients, recipientsAmount);
                 }
                 if (choiceNr == '5') {
                     //deleteRecipient (recipients, recipientsTemporary, idZalogowanegoUzytkownika, recipientsAmount);
@@ -184,22 +184,22 @@ void viewRecipientsFromFile (vector<Recipient> &recipients, int recipientsAmount
     system("cls");
     cout << "Lista osob:" << endl << endl;
 
-    for (int i = 0; i < recipientsAmount; i++) {
+    for (int i = 0; i < recipients.size(); i++) {
 
         cout << "ID:           " << recipients[i].id << endl;
+        cout << "IDUser:       " << recipients[i].idUser << endl;
         cout << "Imie:         " << recipients[i].name << endl;
         cout << "Nazwisko:     " << recipients[i].surname << endl;
         cout << "NrTelefonu:   " << recipients[i].phoneNr << endl;
         cout << "Email:        " << recipients[i].email << endl;
         cout << "Adres:        " << recipients[i].address << endl << endl;
     }
-    if (recipientsAmount == 0)
-        {
-            cout << "Lista osob jest pusta" << endl << endl;
-        }
+    if (recipientsAmount == 0) {
+        cout << "Lista osob jest pusta" << endl << endl;
+    }
     system("pause");
-}
 
+}
 void searchRecipientByName (vector<Recipient> &recipients) {
 
     string imieDoWyszukania = "";
