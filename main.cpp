@@ -9,8 +9,8 @@
 using namespace std;
 
 struct User {
-    int idUzytkownika;
-    string nazwa, haslo;
+    int idUser;
+    string userName, password;
 };
 
 struct Recipient {
@@ -19,23 +19,40 @@ struct Recipient {
     string name = "", surname = "", phoneNr = "", email = "", address = "";
 };
 
-void addNewFriend (vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int idZalogowanegoUzytkownika);
 vector<string> split(string& linia, char delimiter);
 int loadAllFriendsFromFile(vector<Recipient> &recipientsTemporary);
 void viewRecipientsFromFile (vector<Recipient> &recipients, int recipientsAmount);
 void searchRecipientByName (vector<Recipient> &recipients);
 void searchRecipientBySurname (vector<Recipient> &recipients);
-void deleteRecipient (vector<Recipient> &recipients, int &recipientsAmount);
-void loadRecipientsToAFile(vector<Recipient> &recipients, int idZalogowanegoUzytkownika);
-void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika);
-void zmianaHasla(vector<User> &usersContainer, int usersAmount, int idZalogowanegoUzytkownika);
+void loadRecipientsToAFile(vector<Recipient> &recipients, int loggedUserID);
+void editRecipient (vector<Recipient> &recipients, int loggedUserID);
+void changePassword(vector<User> &usersContainer, int usersAmount, int loggedUserID);
 void loadUsersToAFile(vector<User> &usersContainer);
-void addNewFriend(vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int idZalogowanegoUzytkownika);
+void addNewFriend(vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int loggedUserID);
 int loadUsersFromFile (vector<User> &usersContainer);
-int logowanie (vector<User> &usersContainer, int usersAmount);
-void rejestracja (vector<User> &usersContainer, int &usersAmount);
-void updateVectorOfRecipients (vector<Recipient> &recipients, int idZalogowanegoUzytkownika);
-void deleteRecipient (vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int idZalogowanegoUzytkownika);
+int logToTheSystem (vector<User> &usersContainer, int usersAmount);
+void userRegistration (vector<User> &usersContainer, int &usersAmount);
+void updateVectorOfRecipients (vector<Recipient> &recipients, int loggedUserID);
+void deleteRecipient (vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int loggedUserID);
+
+void enterNewFriendToFile(Recipient recipientData) {
+    fstream plik;
+    plik.open("Adresaci.txt", ios::out | ios::app);
+
+    if (plik.good() == true) {
+        plik << recipientData.id << "|";
+        plik << recipientData.idUser << "|";
+        plik << recipientData.name << "|";
+        plik << recipientData.surname << "|";
+        plik << recipientData.phoneNr << "|";
+        plik << recipientData.email << "|";
+        plik << recipientData.address << "|" << endl;
+        plik.close();
+    } else {
+        cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych." << endl;
+        system("pause");
+    }
+}
 
 int main() {
 
@@ -44,7 +61,7 @@ int main() {
     vector<Recipient> recipientsTemporary;
     recipients = recipientsTemporary;
 
-    int idZalogowanegoUzytkownika = 0;
+    int loggedUserID = 0;
     int usersAmount = loadUsersFromFile (usersContainer);
     int recipientsAmount = loadAllFriendsFromFile(recipientsTemporary);
 
@@ -52,7 +69,7 @@ int main() {
     char choiceNr;
 
     while(1) {
-        if (idZalogowanegoUzytkownika == 0) {
+        if (loggedUserID == 0) {
             system ("cls");
             cout << "1. Logowanie" << endl;
             cout << "2. Rejestracja" << endl;
@@ -60,12 +77,12 @@ int main() {
             cin >> wybor;
 
             if (wybor == '1') {
-                idZalogowanegoUzytkownika = logowanie (usersContainer, usersAmount);
-                updateVectorOfRecipients (recipients, idZalogowanegoUzytkownika);
+                loggedUserID = logToTheSystem (usersContainer, usersAmount);
+                updateVectorOfRecipients (recipients, loggedUserID);
             }
 
             if (wybor == '2') {
-                rejestracja (usersContainer, usersAmount);
+                userRegistration (usersContainer, usersAmount);
             }
 
             if (wybor == '9') {
@@ -89,7 +106,7 @@ int main() {
             choiceNr = getch();
 
             if (choiceNr == '1') {
-                addNewFriend(recipients, recipientsTemporary, idZalogowanegoUzytkownika);
+                addNewFriend(recipients, recipientsTemporary, loggedUserID);
             }
             if (choiceNr == '2') {
                 searchRecipientByName(recipients);
@@ -101,17 +118,16 @@ int main() {
                 viewRecipientsFromFile (recipients, recipientsAmount);
             }
             if (choiceNr == '5') {
-                deleteRecipient (recipients, recipientsTemporary, idZalogowanegoUzytkownika);
+                deleteRecipient (recipients, recipientsTemporary, loggedUserID);
             }
             if (choiceNr == '6') {
-                editRecipient (recipients, idZalogowanegoUzytkownika);
+                editRecipient (recipients, loggedUserID);
             }
             if (choiceNr == '7') {
-                zmianaHasla(usersContainer, usersAmount, idZalogowanegoUzytkownika);
+                changePassword(usersContainer, usersAmount, loggedUserID);
                 loadUsersToAFile(usersContainer);
             } else if (choiceNr == '8') {
-                //recipientsAmount = loadAllFriendsFromFile(recipients);
-                idZalogowanegoUzytkownika = 0;
+                loggedUserID = 0;
             }
         }
     }
@@ -265,54 +281,7 @@ void searchRecipientBySurname (vector<Recipient> &recipients) {
     system("pause");
 }
 
-void deleteRecipient (vector<Recipient> &recipients, int &recipientsAmount) {
-
-    string id, name, surname, phoneNr, email, address;
-    int idNr;
-    char choiceNr;
-
-    cout << endl;
-    cout << "Podaj id osoby do usuniecia z Ksiazki adresowej: ";
-    cin >> idNr;
-    stringstream ss;
-    ss << idNr;
-    string idInString = ss.str();
-
-    cout << "Czy na pewno chcesz aby Adresat o id: " << idInString << " zostal usuniety" << endl;
-    cout << "wybierz (t) jezeli tak" << endl;
-    choiceNr = getch();
-
-    if (choiceNr == 't') {
-        for (int i = 0; i < recipients.size(); i++) {
-            if(recipients[i].id == idNr) {
-                recipients.erase(recipients.begin() + i);
-            }
-        }
-        fstream plik;
-        plik.open("Adresaci.txt",ios::out);
-
-        if (plik.good() == true) {
-            for (int i = 0; i < recipients.size(); i++) {
-                plik << recipients[i].id << "|";
-                plik << recipients[i].name << "|";
-                plik << recipients[i].surname << "|";
-                plik << recipients[i].phoneNr << "|";
-                plik << recipients[i].email << "|";
-                plik << recipients[i].address << "|" << endl;
-            }
-            plik.close();
-        } else {
-            cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych." << endl;
-            system("pause");
-        }
-        plik.close();
-        recipientsAmount--;
-        cout<<"Adresat o id: " << idInString << " zostal usuniety" << endl;
-        Sleep(2000);
-    }
-}
-
-void loadRecipientsToAFile(vector<Recipient> &recipients, int idZalogowanegoUzytkownika) {
+void loadRecipientsToAFile(vector<Recipient> &recipients, int loggedUserID) {
 
     fstream plik;
     fstream temp;
@@ -336,7 +305,7 @@ void loadRecipientsToAFile(vector<Recipient> &recipients, int idZalogowanegoUzyt
                 int i = 0;
                 vector<string> newSplit = split(linia, delimiter);
 
-                if(atoi(newSplit[i+1].c_str()) != idZalogowanegoUzytkownika) {
+                if(atoi(newSplit[i+1].c_str()) != loggedUserID) {
                     temp << linia << endl;
                     newSplit.clear();
                 } else {
@@ -362,7 +331,7 @@ void loadRecipientsToAFile(vector<Recipient> &recipients, int idZalogowanegoUzyt
     rename("Adresaci_tymczasowy.txt", "Adresaci.txt");
 }
 
-void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika) {
+void editRecipient (vector<Recipient> &recipients, int loggedUserID) {
 
     int idOfRecipientToEdit;
     char choiceNr;
@@ -371,6 +340,9 @@ void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika
     system("cls");
     cout << "Wybierz id adresata, ktorego chcesz edytowac: ";
     cin >> idOfRecipientToEdit;
+
+    for (int i = 0; i < recipients.size(); i++){
+    if ((recipients[i].id == idOfRecipientToEdit) && (recipients[i].idUser == loggedUserID)){
     system("cls");
     cout << "Ktora dana adresata chcesz edytowac: " << endl;
     cout << "1. imie" << endl;
@@ -391,7 +363,7 @@ void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika
                 recipients[i].name = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        loadRecipientsToAFile (recipients, loggedUserID);
         cout << endl << "imie zostalo pomyslnie zmienione" << endl;
         Sleep(2000);
         break;
@@ -404,7 +376,7 @@ void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika
                 recipients[i].surname = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        loadRecipientsToAFile (recipients, loggedUserID);
         cout << endl << "nazwisko zostalo pomyslnie zmienione" << endl;
         Sleep(2000);
         break;
@@ -418,7 +390,7 @@ void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika
                 recipients[i].phoneNr = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        loadRecipientsToAFile (recipients, loggedUserID);
         cout << endl << "Nr telefonu zostal pomyslnie zmieniony" << endl;
         Sleep(2000);
         break;
@@ -432,7 +404,7 @@ void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika
                 recipients[i].email = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        loadRecipientsToAFile (recipients, loggedUserID);
         cout << endl << "adres email zostal pomyslnie zmieniony" << endl;
         Sleep(2000);
         break;
@@ -446,7 +418,7 @@ void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika
                 recipients[i].address = editParticularInfoAboutRecipient;
             }
         }
-        loadRecipientsToAFile (recipients, idZalogowanegoUzytkownika);
+        loadRecipientsToAFile (recipients, loggedUserID);
         cout << endl << "adres zostal pomyslnie zmieniony" << endl;
         Sleep(2000);
         break;
@@ -454,14 +426,19 @@ void editRecipient (vector<Recipient> &recipients, int idZalogowanegoUzytkownika
     case '6':
         break;
     }
+    }
+    else cout << "Nie masz uprawnien do edytowania Adresata o numerze ID: " << idOfRecipientToEdit << endl;
+        Sleep(3000);
+        break;
+    }
 }
-void zmianaHasla(vector<User> &usersContainer, int usersAmount, int idZalogowanegoUzytkownika) {
+void changePassword(vector<User> &usersContainer, int usersAmount, int loggedUserID) {
     string newPassword;
     cout << "Podaj nowe haslo: ";
     cin >> newPassword;
     for (int i=0; i < usersAmount; i++) {
-        if (usersContainer[i].idUzytkownika == idZalogowanegoUzytkownika) {
-            usersContainer[i].haslo = newPassword;
+        if (usersContainer[i].idUser == loggedUserID) {
+            usersContainer[i].password = newPassword;
             cout << "Haslo zostalo zmienione" << endl;
             Sleep (1500);
         }
@@ -474,14 +451,14 @@ void loadUsersToAFile(vector<User> &usersContainer) {
 
     if (plik.good() == true) {
         for (int i = 0; i < usersContainer.size(); i++) {
-            plik << usersContainer[i].idUzytkownika << "|";
-            plik << usersContainer[i].nazwa << "|";
-            plik << usersContainer[i].haslo << "|" << endl;
+            plik << usersContainer[i].idUser << "|";
+            plik << usersContainer[i].userName << "|";
+            plik << usersContainer[i].password << "|" << endl;
         }
         plik.close();
     }
 }
-void addNewFriend(vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int idZalogowanegoUzytkownika) {
+void addNewFriend(vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int loggedUserID) {
 
     string name, surname, phoneNr, email, address;
     Recipient recipientData;
@@ -506,33 +483,20 @@ void addNewFriend(vector<Recipient> &recipients, vector<Recipient> &recipientsTe
     } else {
         recipientData.id = recipientsTemporary.back().id + 1;
     }
-    recipientData.idUser = idZalogowanegoUzytkownika;
+    recipientData.idUser = loggedUserID;
     recipientData.name = name;
     recipientData.surname = surname;
     recipientData.phoneNr = phoneNr;
     recipientData.email = email;
     recipientData.address = address;
     recipients.push_back(recipientData);
+
+    enterNewFriendToFile(recipientData);
+
     recipientsTemporary.push_back(recipientData);
     cout<<"Osoba zostala dodana";
     Sleep(2000);
 
-    fstream plik;
-    plik.open("Adresaci.txt", ios::out | ios::app);
-
-    if (plik.good() == true) {
-        plik << recipientData.id << "|";
-        plik << idZalogowanegoUzytkownika << "|";
-        plik << name << "|";
-        plik << surname << "|";
-        plik << phoneNr << "|";
-        plik << email << "|";
-        plik << address << "|" << endl;
-        plik.close();
-    } else {
-        cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych." << endl;
-        system("pause");
-    }
 }
 int loadUsersFromFile (vector<User> &usersContainer) {
 
@@ -554,9 +518,9 @@ int loadUsersFromFile (vector<User> &usersContainer) {
             case 1:
                 int i = 0;
                 vector<string> newSplit = split(linia, delimiter);
-                userData.idUzytkownika = atoi(newSplit[i].c_str());
-                userData.nazwa = newSplit[i+1];
-                userData.haslo = newSplit[i+2];
+                userData.idUser = atoi(newSplit[i].c_str());
+                userData.userName = newSplit[i+1];
+                userData.password = newSplit[i+2];
                 usersContainer.push_back(userData);
                 newSplit.clear();
 
@@ -576,21 +540,21 @@ int loadUsersFromFile (vector<User> &usersContainer) {
     }
     return usersAmount;
 }
-int logowanie (vector<User> &usersContainer, int usersAmount) {
-    string nazwa, haslo;
+int logToTheSystem (vector<User> &usersContainer, int usersAmount) {
+    string userName, password;
     cout << "Podaj nazwe: ";
-    cin >> nazwa;
+    cin >> userName;
 
     int i = 0;
     while (i < usersAmount) {
-        if ( usersContainer[i].nazwa == nazwa ) {
-            for (int proby = 0; proby < 3 ; proby++) {
-                cout << "Podaj haslo. Pozostalo prob "<< 3-proby <<": ";
-                cin >> haslo;
-                if (usersContainer[i].haslo == haslo) {
+        if ( usersContainer[i].userName == userName ) {
+            for (int choiceAmount = 0; choiceAmount < 3 ; choiceAmount++) {
+                cout << "Podaj haslo. Pozostalo prob "<< 3-choiceAmount <<": ";
+                cin >> password;
+                if (usersContainer[i].password == password) {
                     cout << "Zalogowales sie." << endl;
                     Sleep (1000);
-                    return usersContainer[i].idUzytkownika;
+                    return usersContainer[i].idUser;
                 }
             }
             Sleep (3000);
@@ -603,30 +567,30 @@ int logowanie (vector<User> &usersContainer, int usersAmount) {
     return 0;
 }
 
-void rejestracja (vector<User> &usersContainer, int &usersAmount) {
+void userRegistration (vector<User> &usersContainer, int &usersAmount) {
 
-    string nazwa, haslo;
+    string userName, password;
     User userData;
 
     cout << "Podaj nazwe uzytkownika: ";
-    cin >> nazwa;
+    cin >> userName;
 
     int i = 0;
     while (i < usersAmount) {
-        if ( usersContainer[i].nazwa == nazwa ) {
+        if ( usersContainer[i].userName == userName ) {
             cout << "Taki uzytkownik istnieje, wpisz inna nazwe uzytkownika: ";
-            cin >> nazwa;
+            cin >> userName;
             i = 0;
         } else {
             i++;
         }
     }
     cout << "Podaj haslo: ";
-    cin >> haslo;
+    cin >> password;
 
-    userData.idUzytkownika = usersAmount + 1;
-    userData.nazwa = nazwa;
-    userData.haslo = haslo;
+    userData.idUser = usersAmount + 1;
+    userData.userName = userName;
+    userData.password = password;
     usersContainer.push_back(userData);
 
     cout << "Konto zalozone" << endl;
@@ -637,15 +601,15 @@ void rejestracja (vector<User> &usersContainer, int &usersAmount) {
     plik.open("Uzytkownicy.txt", ios::out | ios::app);
 
     if (plik.good() == true) {
-        plik << userData.idUzytkownika << "|";
-        plik << nazwa << "|";
-        plik << haslo << "|" << endl;
+        plik << userData.idUser << "|";
+        plik << userName << "|";
+        plik << password << "|" << endl;
     } else {
         cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych." << endl;
         system("pause");
     }
 }
-void updateVectorOfRecipients (vector<Recipient> &recipients, int idZalogowanegoUzytkownika) {
+void updateVectorOfRecipients (vector<Recipient> &recipients, int loggedUserID) {
 
     recipients.clear();
     Recipient recipientData;
@@ -666,7 +630,7 @@ void updateVectorOfRecipients (vector<Recipient> &recipients, int idZalogowanego
             case 1:
                 int i = 0;
                 vector<string> newSplit = split(linia, delimiter);
-                if(atoi(newSplit[i+1].c_str()) == idZalogowanegoUzytkownika) {
+                if(atoi(newSplit[i+1].c_str()) == loggedUserID) {
                     recipientData.id = atoi(newSplit[i].c_str());
                     recipientData.idUser = atoi(newSplit[i+1].c_str());
                     recipientData.name = newSplit[i+2];
@@ -687,7 +651,7 @@ void updateVectorOfRecipients (vector<Recipient> &recipients, int idZalogowanego
         plik.close();
     }
 }
-void deleteRecipient (vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int idZalogowanegoUzytkownika) {
+void deleteRecipient (vector<Recipient> &recipients, vector<Recipient> &recipientsTemporary, int loggedUserID) {
 
     int idNr;
     char choiceNr;
@@ -697,6 +661,9 @@ void deleteRecipient (vector<Recipient> &recipients, vector<Recipient> &recipien
     stringstream ss;
     ss << idNr;
     string idInString = ss.str();
+
+    for (int i = 0; i < recipients.size(); i++){
+    if ((recipients[i].id == idNr) && (recipients[i].idUser == loggedUserID)){
 
     cout << "Czy na pewno chcesz aby Adresat o id: " << idInString << " zostal usuniety" << endl;
     cout << "wybierz (t) jezeli tak" << endl;
@@ -744,16 +711,23 @@ void deleteRecipient (vector<Recipient> &recipients, vector<Recipient> &recipien
 
 
         for (int i = 0; i < recipients.size(); i++) {
-            if(recipients[i].id == idNr) {
+            if (recipients[i].id == idNr) {
                 recipients.erase(recipients.begin() + i);
-                cout<<"Adresat o id: " << idInString << " zostal usuniety" << endl;
-                Sleep(2000);
-            }
-            for (int i = 0; i < recipientsTemporary.size(); i++) {
+                for (int i = 0; i < recipientsTemporary.size(); i++) {
                 if(recipientsTemporary[i].id == idNr) {
                     recipientsTemporary.erase(recipientsTemporary.begin() + i);
                 }
             }
+            cout<<"Adresat o numerze ID: " << idInString << " zostal usuniety" << endl;
+                Sleep(2000);
+                    }
+                }
+            }
         }
+        else cout << "Nie masz uprawnien do usuniecia Adresata o numerze ID: " << idNr << endl;
+        Sleep(3000);
+        break;
     }
 }
+
+
